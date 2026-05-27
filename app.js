@@ -396,9 +396,44 @@ function switchTab(view) {
   showView(view);
 }
 
+// ─── 자동 업데이트 ─────────────────────────────────────────
+function showUpdateToast(msg) {
+  let toast = document.getElementById('update-toast');
+  if (!toast) {
+    toast = document.createElement('div');
+    toast.id = 'update-toast';
+    toast.className = 'update-toast';
+    document.body.appendChild(toast);
+  }
+  toast.textContent = msg;
+  toast.classList.add('show');
+}
+
+function setupAutoUpdate() {
+  if (!('serviceWorker' in navigator)) return;
+
+  navigator.serviceWorker.register('./sw.js').then(reg => {
+    // 1시간마다 새 버전 체크 (앱이 열려있을 때)
+    setInterval(() => reg.update().catch(() => {}), 60 * 60 * 1000);
+    // 페이지 포커스 받을 때마다도 한 번 체크
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) reg.update().catch(() => {});
+    });
+  }).catch(() => {});
+
+  // 새 서비스 워커가 컨트롤 가져가면 → 자동 새로고침
+  let refreshing = false;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (refreshing) return;
+    refreshing = true;
+    showUpdateToast('🔄 새 버전 적용 중...');
+    setTimeout(() => window.location.reload(), 1200);
+  });
+}
+
 // ─── 초기화 ────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
-  if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(() => {});
+  setupAutoUpdate();
   const t = new Date();
   const dow = ['일','월','화','수','목','금','토'][t.getDay()];
   document.getElementById('today-str').textContent =

@@ -164,6 +164,20 @@ html, body { height: 100%; background: var(--bg); color: var(--text);
 
 .action-row { display: flex; gap: 10px; margin-top: 24px; }
 
+/* ── 업데이트 알림 토스트 ── */
+.update-toast {
+  position: fixed; top: 20px; left: 50%;
+  transform: translate(-50%, -100px);
+  background: var(--accent); color: #fff;
+  padding: 12px 22px; border-radius: 30px;
+  font-size: 14px; font-weight: 600;
+  z-index: 1000; opacity: 0;
+  transition: transform .35s cubic-bezier(.32,1.2,.6,1), opacity .25s;
+  box-shadow: 0 6px 24px rgba(233,69,96,.4);
+  white-space: nowrap;
+}
+.update-toast.show { transform: translate(-50%, 0); opacity: 1; }
+
 /* ── 생일 상세 ── */
 .detail-hero { background: var(--surface2); padding: 32px 20px 24px;
   text-align: center; border-bottom: 1px solid rgba(255,255,255,.06); }
