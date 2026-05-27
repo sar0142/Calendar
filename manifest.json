@@ -1,0 +1,22 @@
+{
+  "name": "음력 생일 달력",
+  "short_name": "음력달력",
+  "description": "음력 생일을 매년 양력으로 변환해주는 앱",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#1a1a2e",
+  "theme_color": "#e94560",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

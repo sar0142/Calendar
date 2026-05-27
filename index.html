@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#1a1a2e">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="음력달력">
+  <title>음력 생일 달력</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="app">
+
+  <!-- ── 홈 화면 ── -->
+  <div id="view-home" class="view">
+    <div class="header">
+      <div>
+        <h1>🌙 음력 생일</h1>
+        <div class="sub" id="today-str"></div>
+      </div>
+    </div>
+    <div class="scroll-area">
+      <div id="people-list"></div>
+    </div>
+    <button class="fab" onclick="openAdd()">+</button>
+    <div class="tab-bar">
+      <button class="tab-btn active" onclick="switchTab('home', this)">
+        <span class="icon">🏠</span>홈
+      </button>
+      <button class="tab-btn" onclick="switchTab('calendar', this)">
+        <span class="icon">📅</span>달력
+      </button>
+    </div>
+  </div>
+
+  <!-- ── 생일 추가 화면 ── -->
+  <div id="view-add" class="view">
+    <div class="header">
+      <button class="back-btn" onclick="showView('home')">‹</button>
+      <h1>생일 추가</h1>
+    </div>
+    <div class="scroll-area">
+      <form id="add-form" onsubmit="submitAdd(event)">
+        <div class="form-group">
+          <label>이름</label>
+          <input type="text" id="add-name" placeholder="홍길동" maxlength="10" required>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>음력 월 (1~12)</label>
+            <input type="number" id="add-month" placeholder="1" min="1" max="12" required>
+          </div>
+          <div class="form-group">
+            <label>음력 일 (1~30)</label>
+            <input type="number" id="add-day" placeholder="1" min="1" max="30" required>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="checkbox-label">
+            <input type="checkbox" id="add-leap">
+            <span>윤달 생일</span>
+          </label>
+        </div>
+        <div class="form-group" style="background:rgba(255,255,255,.04);border-radius:12px;padding:14px 16px;font-size:13px;color:var(--text-sub);">
+          💡 음력 생일을 몰라도 괜찮아요! 가족이나 어른께 물어보거나, 생일 기념품에 적혀있을 수도 있어요.
+        </div>
+        <button type="submit" class="btn-primary">저장하기</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ── 상세 화면 ── -->
+  <div id="view-detail" class="view">
+    <div class="header">
+      <button class="back-btn" onclick="showView('home')">‹</button>
+      <h1>생일 상세</h1>
+    </div>
+    <div class="scroll-area" style="padding:0 0 80px;">
+      <div class="detail-hero">
+        <div class="detail-avatar" id="detail-avatar">?</div>
+        <div class="detail-name" id="detail-name"></div>
+        <div class="detail-lunar-info" id="detail-lunar"></div>
+      </div>
+      <div style="padding:20px 16px;">
+        <div class="section-title">연도별 양력 날짜</div>
+        <table class="birthday-table">
+          <thead>
+            <tr>
+              <th>음력 연도</th>
+              <th>양력 날짜</th>
+              <th>D-day</th>
+            </tr>
+          </thead>
+          <tbody id="detail-table"></tbody>
+        </table>
+        <button class="btn-danger" onclick="deleteCurrentPerson()">🗑 삭제</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── 달력 화면 ── -->
+  <div id="view-calendar" class="view">
+    <div class="header">
+      <div>
+        <h1>📅 달력</h1>
+        <div class="sub">점을 눌러 생일 확인</div>
+      </div>
+    </div>
+    <div class="scroll-area">
+      <div class="cal-header">
+        <button class="cal-nav" onclick="renderCalendar(0,-1)">‹</button>
+        <h2 id="cal-title"></h2>
+        <button class="cal-nav" onclick="renderCalendar(0,1)">›</button>
+      </div>
+      <table class="cal-table">
+        <thead>
+          <tr>
+            <th>일</th><th>월</th><th>화</th><th>수</th><th>목</th><th>금</th><th>토</th>
+          </tr>
+        </thead>
+        <tbody id="cal-body"></tbody>
+      </table>
+      <!-- 범례 -->
+      <div class="cal-legend" id="cal-legend"></div>
+    </div>
+    <div class="tab-bar">
+      <button class="tab-btn" onclick="switchTab('home', this)">
+        <span class="icon">🏠</span>홈
+      </button>
+      <button class="tab-btn active" onclick="switchTab('calendar', this)">
+        <span class="icon">📅</span>달력
+      </button>
+    </div>
+  </div>
+
+</div>
+
+<script src="lunar.js"></script>
+<script src="app.js"></script>
+<script>
+  // 오늘 날짜 표시
+  const today = new Date();
+  const dow = ['일','월','화','수','목','금','토'][today.getDay()];
+  document.getElementById('today-str').textContent =
+    `${today.getFullYear()}년 ${today.getMonth()+1}월 ${today.getDate()}일 (${dow})`;
+
+  function switchTab(view, btn) {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    // 탭바 양쪽 동기화
+    const allTabBtns = document.querySelectorAll('.tab-btn');
+    allTabBtns.forEach(b => {
+      if (b.textContent.includes(btn.textContent.trim())) b.classList.add('active');
+    });
+    showView(view);
+  }
+
+  // 달력 뷰 열릴 때 범례 업데이트
+  const origRenderCalendar = renderCalendar;
+  window.renderCalendar = function(yo, mo) {
+    origRenderCalendar(yo, mo);
+    const legend = document.getElementById('cal-legend');
+    if (people.length === 0) { legend.innerHTML = ''; return; }
+    legend.innerHTML = '<div class="section-title">등록된 생일</div>' +
+      people.map(p => `<div class="legend-item">
+        <span class="legend-dot" style="background:${p.color}"></span>
+        <span class="legend-name">${p.name}</span>
+        <span class="legend-lunar">음력 ${p.month}월 ${p.day}일${p.isLeap?' (윤달)':''}</span>
+      </div>`).join('');
+  };
+</script>
+</body>
+</html>
