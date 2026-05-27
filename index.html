@@ -135,7 +135,10 @@
           </thead>
           <tbody id="detail-table"></tbody>
         </table>
-        <button class="btn-danger" onclick="deleteBirthday()">🗑 삭제</button>
+        <div class="action-row">
+          <button class="btn-secondary" onclick="editBirthday()">✏️ 수정</button>
+          <button class="btn-danger" onclick="deleteBirthday()">🗑 삭제</button>
+        </div>
       </div>
     </div>
   </div>
@@ -167,7 +170,10 @@
         </div>
       </div>
       <div style="padding:0 16px">
-        <button class="btn-danger" onclick="deleteEvent()">🗑 삭제</button>
+        <div class="action-row">
+          <button class="btn-secondary" onclick="editEvent()">✏️ 수정</button>
+          <button class="btn-danger" onclick="deleteEvent()">🗑 삭제</button>
+        </div>
       </div>
     </div>
   </div>

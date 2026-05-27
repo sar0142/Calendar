@@ -4,6 +4,7 @@ let events = JSON.parse(localStorage.getItem('calEvents')   || '[]');
 let currentView     = 'home';
 let selectedPersonId = null;
 let selectedEventId  = null;
+let editingId        = null;
 let calYear, calMonth;
 
 // ─── 저장 ──────────────────────────────────────────────────
@@ -119,12 +120,31 @@ function renderEventCard(e, dday) {
 }
 
 // ─── 생일 추가 ─────────────────────────────────────────────
-function openAddBirthday() {
+function openAddBirthday(id = null) {
   closeAddSheet(true);
   document.getElementById('add-birthday-form').reset();
-  document.getElementById('birthday-type-input').value = 'lunar';
-  setCalType('lunar');
+  editingId = id;
+  const titleEl = document.querySelector('#view-add-birthday .header h1');
+  if (id) {
+    const p = people.find(x => x.id === id);
+    if (p) {
+      document.getElementById('add-name').value  = p.name;
+      document.getElementById('add-month').value = p.month;
+      document.getElementById('add-day').value   = p.day;
+      document.getElementById('add-leap').checked = !!p.isLeap;
+      setCalType(p.isLunar ? 'lunar' : 'solar');
+      titleEl.textContent = '🎂 생일 수정';
+    }
+  } else {
+    document.getElementById('birthday-type-input').value = 'lunar';
+    setCalType('lunar');
+    titleEl.textContent = '🎂 생일 추가';
+  }
   showView('add-birthday');
+}
+
+function editBirthday() {
+  openAddBirthday(selectedPersonId);
 }
 
 function setCalType(type) {
@@ -147,25 +167,50 @@ function submitBirthday(ev) {
     alert('올바른 날짜를 입력해주세요');
     return;
   }
-  const colors = ['#e94560','#0f3460','#533483','#057dcd','#43b97f','#e67e22','#9b59b6','#c0392b'];
-  people.push({
-    id: Date.now().toString(), name, month, day,
-    isLeap: isLunar && isLeap, isLunar,
-    color: colors[Math.floor(Math.random() * colors.length)]
-  });
+  if (editingId) {
+    const idx = people.findIndex(p => p.id === editingId);
+    if (idx >= 0) {
+      people[idx] = { ...people[idx], name, month, day, isLeap: isLunar && isLeap, isLunar };
+    }
+    editingId = null;
+  } else {
+    const colors = ['#e94560','#0f3460','#533483','#057dcd','#43b97f','#e67e22','#9b59b6','#c0392b'];
+    people.push({
+      id: Date.now().toString(), name, month, day,
+      isLeap: isLunar && isLeap, isLunar,
+      color: colors[Math.floor(Math.random() * colors.length)]
+    });
+  }
   save();
   showView('home');
 }
 
 // ─── 일정 추가 ─────────────────────────────────────────────
-function openAddEvent() {
+function openAddEvent(id = null) {
   closeAddSheet(true);
   document.getElementById('add-event-form').reset();
-  // 기본 날짜: 오늘
-  const today = new Date();
-  const iso = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
-  document.getElementById('event-date').value = iso;
+  editingId = id;
+  const titleEl = document.querySelector('#view-add-event .header h1');
+  if (id) {
+    const e = events.find(x => x.id === id);
+    if (e) {
+      document.getElementById('event-title').value = e.title;
+      document.getElementById('event-date').value  = e.date;
+      document.getElementById('event-time').value  = e.time || '';
+      document.getElementById('event-memo').value  = e.memo || '';
+      titleEl.textContent = '📌 일정 수정';
+    }
+  } else {
+    const today = new Date();
+    const iso = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
+    document.getElementById('event-date').value = iso;
+    titleEl.textContent = '📌 일정 추가';
+  }
   showView('add-event');
+}
+
+function editEvent() {
+  openAddEvent(selectedEventId);
 }
 
 function submitEvent(ev) {
@@ -175,7 +220,15 @@ function submitEvent(ev) {
   const time  = document.getElementById('event-time').value;
   const memo  = document.getElementById('event-memo').value.trim();
   if (!title || !date) return;
-  events.push({ id: Date.now().toString(), title, date, time: time || '', memo: memo || '' });
+  if (editingId) {
+    const idx = events.findIndex(e => e.id === editingId);
+    if (idx >= 0) {
+      events[idx] = { ...events[idx], title, date, time: time || '', memo: memo || '' };
+    }
+    editingId = null;
+  } else {
+    events.push({ id: Date.now().toString(), title, date, time: time || '', memo: memo || '' });
+  }
   save();
   showView('home');
 }
