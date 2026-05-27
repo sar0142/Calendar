@@ -16,99 +16,168 @@
 <body>
 <div id="app">
 
-  <!-- ── 홈 화면 ── -->
+  <!-- ════════════════ 홈 ════════════════ -->
   <div id="view-home" class="view">
     <div class="header">
       <div>
-        <h1>🌙 음력 생일</h1>
+        <h1>🌙 생일 & 일정</h1>
         <div class="sub" id="today-str"></div>
       </div>
     </div>
-    <div class="scroll-area">
-      <div id="people-list"></div>
-    </div>
-    <button class="fab" onclick="openAdd()">+</button>
+    <div class="scroll-area" id="home-list"></div>
+    <button class="fab" onclick="openAddSheet()">+</button>
     <div class="tab-bar">
-      <button class="tab-btn active" onclick="switchTab('home', this)">
+      <button class="tab-btn active" data-tab="home" onclick="switchTab('home')">
         <span class="icon">🏠</span>홈
       </button>
-      <button class="tab-btn" onclick="switchTab('calendar', this)">
+      <button class="tab-btn" data-tab="calendar" onclick="switchTab('calendar')">
         <span class="icon">📅</span>달력
       </button>
     </div>
   </div>
 
-  <!-- ── 생일 추가 화면 ── -->
-  <div id="view-add" class="view">
+  <!-- ════════════════ 생일 추가 ════════════════ -->
+  <div id="view-add-birthday" class="view">
     <div class="header">
       <button class="back-btn" onclick="showView('home')">‹</button>
-      <h1>생일 추가</h1>
+      <h1>🎂 생일 추가</h1>
     </div>
     <div class="scroll-area">
-      <form id="add-form" onsubmit="submitAdd(event)">
+      <form id="add-birthday-form" onsubmit="submitBirthday(event)">
+        <input type="hidden" id="birthday-type-input" value="lunar">
+
+        <!-- 양력/음력 토글 -->
+        <div class="form-group">
+          <label>달력 종류</label>
+          <div class="toggle-group">
+            <button type="button" id="btn-lunar" class="toggle-btn active" onclick="setCalType('lunar')">🌙 음력</button>
+            <button type="button" id="btn-solar" class="toggle-btn" onclick="setCalType('solar')">☀️ 양력</button>
+          </div>
+        </div>
+
         <div class="form-group">
           <label>이름</label>
           <input type="text" id="add-name" placeholder="홍길동" maxlength="10" required>
         </div>
+
         <div class="form-row">
           <div class="form-group">
-            <label>음력 월 (1~12)</label>
+            <label>월 (1~12)</label>
             <input type="number" id="add-month" placeholder="1" min="1" max="12" required>
           </div>
           <div class="form-group">
-            <label>음력 일 (1~30)</label>
+            <label>일 (1~30)</label>
             <input type="number" id="add-day" placeholder="1" min="1" max="30" required>
           </div>
         </div>
-        <div class="form-group">
+
+        <div class="form-group" id="leap-group" style="display:flex">
           <label class="checkbox-label">
             <input type="checkbox" id="add-leap">
-            <span>윤달 생일</span>
+            <span>윤달 생일이에요</span>
           </label>
         </div>
-        <div class="form-group" style="background:rgba(255,255,255,.04);border-radius:12px;padding:14px 16px;font-size:13px;color:var(--text-sub);">
-          💡 음력 생일을 몰라도 괜찮아요! 가족이나 어른께 물어보거나, 생일 기념품에 적혀있을 수도 있어요.
+
+        <div class="info-box">
+          💡 음력 생일을 모르면 가족이나 어른께 여쭤보거나, 기념품에 적혀 있을 수도 있어요.
         </div>
         <button type="submit" class="btn-primary">저장하기</button>
       </form>
     </div>
   </div>
 
-  <!-- ── 상세 화면 ── -->
-  <div id="view-detail" class="view">
+  <!-- ════════════════ 일정 추가 ════════════════ -->
+  <div id="view-add-event" class="view">
+    <div class="header">
+      <button class="back-btn" onclick="showView('home')">‹</button>
+      <h1>📌 일정 추가</h1>
+    </div>
+    <div class="scroll-area">
+      <form id="add-event-form" onsubmit="submitEvent(event)">
+        <div class="form-group">
+          <label>제목</label>
+          <input type="text" id="event-title" placeholder="예: 할머니 팔순 잔치" maxlength="30" required>
+        </div>
+        <div class="form-group">
+          <label>날짜</label>
+          <input type="date" id="event-date" required>
+        </div>
+        <div class="form-group">
+          <label>시간 <span class="optional">(선택)</span></label>
+          <input type="time" id="event-time">
+        </div>
+        <div class="form-group">
+          <label>메모 <span class="optional">(선택)</span></label>
+          <textarea id="event-memo" placeholder="장소, 준비물 등..." rows="3"></textarea>
+        </div>
+        <button type="submit" class="btn-primary">저장하기</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ════════════════ 생일 상세 ════════════════ -->
+  <div id="view-detail-birthday" class="view">
     <div class="header">
       <button class="back-btn" onclick="showView('home')">‹</button>
       <h1>생일 상세</h1>
     </div>
-    <div class="scroll-area" style="padding:0 0 80px;">
+    <div class="scroll-area" style="padding:0 0 80px">
       <div class="detail-hero">
         <div class="detail-avatar" id="detail-avatar">?</div>
         <div class="detail-name" id="detail-name"></div>
         <div class="detail-lunar-info" id="detail-lunar"></div>
       </div>
-      <div style="padding:20px 16px;">
+      <div style="padding:20px 16px">
         <div class="section-title">연도별 양력 날짜</div>
         <table class="birthday-table">
           <thead>
-            <tr>
-              <th>음력 연도</th>
-              <th>양력 날짜</th>
-              <th>D-day</th>
-            </tr>
+            <tr><th>연도</th><th>양력 날짜</th><th>D-day</th></tr>
           </thead>
           <tbody id="detail-table"></tbody>
         </table>
-        <button class="btn-danger" onclick="deleteCurrentPerson()">🗑 삭제</button>
+        <button class="btn-danger" onclick="deleteBirthday()">🗑 삭제</button>
       </div>
     </div>
   </div>
 
-  <!-- ── 달력 화면 ── -->
+  <!-- ════════════════ 일정 상세 ════════════════ -->
+  <div id="view-detail-event" class="view">
+    <div class="header">
+      <button class="back-btn" onclick="showView('home')">‹</button>
+      <h1>일정 상세</h1>
+    </div>
+    <div class="scroll-area">
+      <div class="event-detail-hero">
+        <div class="event-detail-icon">📌</div>
+        <div class="event-detail-title" id="ev-detail-title"></div>
+        <div class="ev-dday-badge" id="ev-detail-dday"></div>
+      </div>
+      <div class="event-detail-body">
+        <div class="event-info-row">
+          <span class="ev-info-label">📅 날짜</span>
+          <span id="ev-detail-date"></span>
+        </div>
+        <div class="event-info-row" id="ev-time-row">
+          <span class="ev-info-label">⏰ 시간</span>
+          <span id="ev-detail-time"></span>
+        </div>
+        <div class="event-info-row" id="ev-memo-row">
+          <span class="ev-info-label">📝 메모</span>
+          <span id="ev-detail-memo" style="white-space:pre-wrap"></span>
+        </div>
+      </div>
+      <div style="padding:0 16px">
+        <button class="btn-danger" onclick="deleteEvent()">🗑 삭제</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════ 달력 ════════════════ -->
   <div id="view-calendar" class="view">
     <div class="header">
       <div>
         <h1>📅 달력</h1>
-        <div class="sub">점을 눌러 생일 확인</div>
+        <div class="sub">날짜를 눌러 확인</div>
       </div>
     </div>
     <div class="scroll-area">
@@ -119,60 +188,43 @@
       </div>
       <table class="cal-table">
         <thead>
-          <tr>
-            <th>일</th><th>월</th><th>화</th><th>수</th><th>목</th><th>금</th><th>토</th>
-          </tr>
+          <tr><th>일</th><th>월</th><th>화</th><th>수</th><th>목</th><th>금</th><th>토</th></tr>
         </thead>
         <tbody id="cal-body"></tbody>
       </table>
-      <!-- 범례 -->
       <div class="cal-legend" id="cal-legend"></div>
     </div>
     <div class="tab-bar">
-      <button class="tab-btn" onclick="switchTab('home', this)">
+      <button class="tab-btn" data-tab="home" onclick="switchTab('home')">
         <span class="icon">🏠</span>홈
       </button>
-      <button class="tab-btn active" onclick="switchTab('calendar', this)">
+      <button class="tab-btn active" data-tab="calendar" onclick="switchTab('calendar')">
         <span class="icon">📅</span>달력
       </button>
     </div>
   </div>
 
-</div>
+  <!-- ════════════════ 바텀시트 ════════════════ -->
+  <div id="sheet-overlay" class="sheet-overlay" onclick="closeAddSheet()"></div>
+  <div id="add-sheet" class="bottom-sheet">
+    <div class="sheet-handle"></div>
+    <p class="sheet-title">무엇을 추가할까요?</p>
+    <div class="sheet-buttons">
+      <button class="sheet-btn" onclick="openAddBirthday()">
+        <span class="sheet-btn-icon">🎂</span>
+        <span class="sheet-btn-label">생일</span>
+        <span class="sheet-btn-sub">매년 반복</span>
+      </button>
+      <button class="sheet-btn" onclick="openAddEvent()">
+        <span class="sheet-btn-icon">📌</span>
+        <span class="sheet-btn-label">일정</span>
+        <span class="sheet-btn-sub">날짜·시간·메모</span>
+      </button>
+    </div>
+  </div>
 
+</div>
 <script src="lunar.js"></script>
 <script src="app.js"></script>
-<script>
-  // 오늘 날짜 표시
-  const today = new Date();
-  const dow = ['일','월','화','수','목','금','토'][today.getDay()];
-  document.getElementById('today-str').textContent =
-    `${today.getFullYear()}년 ${today.getMonth()+1}월 ${today.getDate()}일 (${dow})`;
-
-  function switchTab(view, btn) {
-    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    // 탭바 양쪽 동기화
-    const allTabBtns = document.querySelectorAll('.tab-btn');
-    allTabBtns.forEach(b => {
-      if (b.textContent.includes(btn.textContent.trim())) b.classList.add('active');
-    });
-    showView(view);
-  }
-
-  // 달력 뷰 열릴 때 범례 업데이트
-  const origRenderCalendar = renderCalendar;
-  window.renderCalendar = function(yo, mo) {
-    origRenderCalendar(yo, mo);
-    const legend = document.getElementById('cal-legend');
-    if (people.length === 0) { legend.innerHTML = ''; return; }
-    legend.innerHTML = '<div class="section-title">등록된 생일</div>' +
-      people.map(p => `<div class="legend-item">
-        <span class="legend-dot" style="background:${p.color}"></span>
-        <span class="legend-name">${p.name}</span>
-        <span class="legend-lunar">음력 ${p.month}월 ${p.day}일${p.isLeap?' (윤달)':''}</span>
-      </div>`).join('');
-  };
-</script>
 </body>
 </html>
