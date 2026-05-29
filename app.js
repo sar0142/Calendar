@@ -13,8 +13,17 @@ function save() {
   localStorage.setItem('calEvents',   JSON.stringify(events));
 }
 
+// ─── HTML escape (XSS 방어) ───────────────────────────────
+function esc(s) {
+  return String(s ?? '').replace(/[&<>"']/g, c =>
+    ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
 // ─── 화면 전환 ─────────────────────────────────────────────
 function showView(name) {
+  // add 화면을 벗어나면 수정 모드 해제 (저장 안 하고 뒤로가기 한 경우)
+  if (name !== 'add-birthday' && name !== 'add-event') editingId = null;
+
   document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
   const el = document.getElementById('view-' + name);
   if (el) el.classList.add('active');
@@ -92,9 +101,9 @@ function renderBirthdayCard(p, next) {
   const ddayCls = dday === 0 ? 'dday today' : dday < 0 ? 'dday past' : 'dday';
   const badge   = `<span class="type-badge ${p.isLunar ? 'lunar' : 'solar'}">${p.isLunar ? '음력' : '양력'}</span>`;
   return `<div class="person-card${isToday ? ' birthday-today' : ''}" onclick="openBirthdayDetail('${p.id}')">
-    <div class="person-avatar" style="background:${p.color}">${p.name[0]}</div>
+    <div class="person-avatar" style="background:${p.color}">${esc(p.name[0])}</div>
     <div class="person-info">
-      <div class="person-name">${p.name} ${badge}${isToday ? ' 🎉' : ''}</div>
+      <div class="person-name">${esc(p.name)} ${badge}${isToday ? ' 🎉' : ''}</div>
       <div class="person-lunar">${p.isLunar ? '음력' : '양력'} ${p.month}월 ${p.day}일${p.isLeap ? ' (윤달)' : ''}</div>
       <div class="person-solar">${next?.solarStr || ''}</div>
     </div>
@@ -111,9 +120,9 @@ function renderEventCard(e, dday) {
   return `<div class="event-card" onclick="openEventDetail('${e.id}')">
     <div class="event-icon">📌</div>
     <div class="person-info">
-      <div class="person-name">${e.title}</div>
-      <div class="person-solar">${dateStr}${timeStr}</div>
-      ${e.memo ? `<div class="event-memo">${e.memo}</div>` : ''}
+      <div class="person-name">${esc(e.title)}</div>
+      <div class="person-solar">${dateStr}${esc(timeStr)}</div>
+      ${e.memo ? `<div class="event-memo">${esc(e.memo)}</div>` : ''}
     </div>
     <div class="${ddayCls}">${ddayStr}</div>
   </div>`;
@@ -339,7 +348,7 @@ function renderCalendar(yearOffset = 0, monthOffset = 0) {
       const dayMarks = marks[day] || [];
       const dots = dayMarks.map(m =>
         `<span class="cal-dot${m.type === 'event' ? ' event-dot' : ''}"
-          style="background:${m.color}" title="${m.name}"></span>`
+          style="background:${m.color}" title="${esc(m.name)}"></span>`
       ).join('');
       html += `<td class="${isToday ? 'today' : ''}" onclick="showCalDay(${calYear},${calMonth},${day})">
         <div class="cal-day-num">${day}</div>
@@ -357,13 +366,13 @@ function renderCalendar(yearOffset = 0, monthOffset = 0) {
     ...people.map(p =>
       `<div class="legend-item">
         <span class="legend-dot" style="background:${p.color}"></span>
-        <span class="legend-name">${p.name}</span>
+        <span class="legend-name">${esc(p.name)}</span>
         <span class="legend-lunar">${p.isLunar?'음력':'양력'} ${p.month}월 ${p.day}일</span>
       </div>`),
     ...events.map(e =>
       `<div class="legend-item">
         <span class="legend-dot" style="background:#f39c12;border-radius:3px"></span>
-        <span class="legend-name">${e.title}</span>
+        <span class="legend-name">${esc(e.title)}</span>
         <span class="legend-lunar">${new Date(e.date+'T00:00:00').toLocaleDateString('ko-KR',{month:'long',day:'numeric'})}</span>
       </div>`)
   ];
